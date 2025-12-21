@@ -13,10 +13,10 @@ export default function Home() {
 
         {/* Messages */}
         <div className="border border-green-500 border-5 bg-amber-100 p-2 mt-2 space-y-2 h-[70dvh] lg:h-[70dvh] shadow-lg shadow-green-500/50 rounded-xl">
-          <div className="border border-blue-500 border-3 p-2 rounded-lg bg-blue-100 w-xl md:w-2xl lg:w-3xl ml-auto">
+          <div className="border border-blue-500 border-3 p-2 rounded-lg bg-blue-100 ml-auto">
             Hello!
           </div>
-          <div className="border border-gray-500 border-3 bg-gray-100 p-2 rounded-lg w-xl md:w-2xl lg:w-3xl mr-auto">
+          <div className="border border-gray-500 border-3 bg-gray-100 p-2 rounded-lg mr-auto">
             Hi there!
           </div>
         </div>
