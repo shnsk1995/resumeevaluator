@@ -3,20 +3,36 @@ import Image from "next/image";
 import { useReducer, useState } from "react";
 
 
+type Message = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+};
+
+type State = {
+  messages: Message[];
+};
+
+type Action =
+  | { type: "ADD_MESSAGES"; payload: Message[] }
+  | { type: "ADD_MESSAGE"; payload: Message };
+
+const initialState: State = {
+    messages: []
+  };
+
 function uuid(){
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-const initialState = {
-  messages : [],
-};
-
-function reducer(state, action){
+function reducer(state: State, action: Action) : State{
   switch(action.type){
     case "ADD_MESSAGES":
       console.log("Happy!")
       return { ...state, messages: [...state.messages, ...action.payload]}
   }
+
+  return state;
 
 }
 
