@@ -36,7 +36,7 @@ function reducer(state: State, action: Action) : State{
 
 }
 
-function UserMessage({msg}){
+function UserMessage({msg} : {msg : string}){
   return(
   <div className="border border-blue-500 border-3 p-2 rounded-lg bg-blue-100 ml-auto text-blue-900">
     <p className="border rounded-lg text-center mb-4">User</p>
@@ -44,7 +44,7 @@ function UserMessage({msg}){
   </div>);
 }
 
-function AssistantMessage({msg}){
+function AssistantMessage({msg} : {msg : string}){
   return(
     <div className="border border-gray-500 border-3 bg-gray-100 p-2 rounded-lg mr-auto text-gray-900">
       <p className="border rounded-lg text-center mb-4">Assistant</p>
@@ -61,7 +61,7 @@ export default function Home() {
   const [roles,setRoles] = useState("")
 
 
-  function newUserMessage(userMessage){
+  function newUserMessage(userMessage:string){
 
     const userMsgId = uuid();
     const assistantMsgId = uuid();
@@ -85,7 +85,7 @@ export default function Home() {
 
   }
 
-  function OnSubmit(e){
+  function OnSubmit(e : any){
     e.preventDefault();
     const userMessage = text.trim();
     if(!userMessage) return;
