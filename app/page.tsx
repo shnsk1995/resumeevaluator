@@ -119,7 +119,7 @@ export default function Home() {
 
         {/* Input */}
         <div className="flex flex-col gap-2 border border-green-500 border-5 shadow-lg shadow-green-500/50 rounded-xl p-2 mt-2 items-center">
-        <form className="flex flex-1 gap-4 w-80 items-center">
+        <form className="flex flex-1 gap-4 items-center">
 
         <input
             className="border p-2 rounded-xl border-gray-500 border-2 shadow-lg text-pink-900"
