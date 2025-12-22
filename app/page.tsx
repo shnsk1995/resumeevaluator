@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useReducer, useState } from "react";
+import { useEffect, useReducer, useState,useRef } from "react";
 
 
 type Message = {
@@ -59,6 +59,7 @@ export default function Home() {
   const [state,dispatch] = useReducer(reducer,initialState)
   const [text,setText] = useState("")
   const [roles,setRoles] = useState("")
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
 
   function newUserMessage(userMessage:string){
@@ -93,6 +94,8 @@ export default function Home() {
     newUserMessage(userMessage);
   }
 
+  useEffect(() => {bottomRef.current?.scrollIntoView({behavior:"smooth"})},[state.messages.length])
+
 
    return (
     <div className="p-5 border bg-yellow-500 min-h-screen rounded-3xl shadow-lg">
@@ -105,7 +108,7 @@ export default function Home() {
         </div>
 
         {/* Messages */}
-        <div className="border border-green-500 border-5 bg-amber-100 p-2 mt-2 space-y-2 h-[70dvh] lg:h-[70dvh] shadow-lg shadow-green-500/50 rounded-xl">
+        <div className="border border-green-500 border-5 bg-amber-100 p-2 mt-2 space-y-2 h-[70dvh] lg:h-[70dvh] shadow-lg shadow-green-500/50 rounded-xl overflow-y-auto">
           
         {state.messages.map(m => (
               m.role==="user" ? 
@@ -115,14 +118,15 @@ export default function Home() {
 }
           
           
+        <div ref={bottomRef}/>
         </div>
 
         {/* Input */}
         <div className="flex sm:flex-col gap-2 border border-green-500 border-5 shadow-lg shadow-green-500/50 rounded-xl p-2 mt-2 items-center">
-        <form className="gap-4 items-center">
+        <form className="gap-4 items-center flex sm:flex-col">
 
         <input
-            className="border p-2 rounded-xl border-gray-500 border-2 shadow-lg text-pink-900"
+            className=" border p-2 rounded-xl border-gray-500 border-2 shadow-lg text-pink-900"
             placeholder="Type message..."
             onSubmit={OnSubmit}
             value={text}
