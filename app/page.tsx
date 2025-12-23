@@ -38,16 +38,16 @@ function reducer(state: State, action: Action) : State{
 
 function UserMessage({msg} : {msg : string}){
   return(
-  <div className="border border-blue-500 border-3 p-2 rounded-lg bg-blue-100 ml-auto text-blue-900">
-    <p className="border rounded-lg text-center mb-4">User</p>
+  <div className="self-end max-w-xs md:max-w-2xl border border-blue-500 border-3 p-2 rounded-lg bg-blue-100 ml-auto text-blue-900">
+    <p className="rounded-lg mb-4 text-black underline">User</p>
     {msg}
   </div>);
 }
 
 function AssistantMessage({msg} : {msg : string}){
   return(
-    <div className="border border-gray-500 border-3 bg-gray-100 p-2 rounded-lg mr-auto text-gray-900">
-      <p className="border rounded-lg text-center mb-4">Assistant</p>
+    <div className="self-start max-w-xs md:max-w-2xl border border-gray-500 border-3 bg-gray-100 p-2 rounded-lg mr-auto text-gray-900">
+      <p className="rounded-lg mb-4 text-black underline">Assistant</p>
       {msg}
   </div>);
 }
@@ -98,17 +98,17 @@ export default function Home() {
 
 
    return (
-    <div className="p-5 border bg-yellow-500 min-h-screen rounded-3xl shadow-lg">
+    <div className="p-5 border bg-yellow-500 min-h-[100dvh] rounded-3xl shadow-lg">
       {/* Page */}
-      <div className="mx-auto border border-pink-500 rounded-3xl  p-2 border-10 bg-yellow-100 h-[95dvh] shadow-xl shadow-pink-500/50 ">
+      <div className="flex  flex-col mx-auto border border-pink-500 rounded-3xl  p-2 border-10 bg-yellow-100 min-h-[100dvh] h-[100dvh] shadow-xl shadow-pink-500/50 ">
         
         {/* Header */}
-        <div className="border border-green-500 border-5 p-2 rounded-xl text-center shadow-lg shadow-green-500/50 mt-2 bg-red-200 text-pink-900">
+        <div className=" flex-none items-center justify-center border border-green-500 border-5 p-2 rounded-xl text-center shadow-lg shadow-green-500/50 mt-2 bg-red-200 text-pink-900">
           Resume Evaluator
         </div>
 
-        {/* Messages */}
-        <div className="border border-green-500 border-5 bg-amber-100 p-2 mt-2 space-y-2 h-[70dvh] lg:h-[70dvh] shadow-lg shadow-green-500/50 rounded-xl overflow-y-auto">
+        {/* Messages. overflow-y-auto only works if parent height is constrained. */}
+        <div className=" flex-1 border border-green-500 border-5 bg-amber-100 p-2 mt-2 space-y-2 shadow-lg shadow-green-500/50 rounded-xl overflow-y-auto min-h-0">
           
         {state.messages.map(m => (
               m.role==="user" ? 
@@ -122,24 +122,22 @@ export default function Home() {
         </div>
 
         {/* Input */}
-        <div className="gap-2 border border-green-500 border-5 shadow-lg shadow-green-500/50 rounded-xl p-2 mt-2 items-center">
-        <form className="gap-4 items-center flex sm:flex-col">
+        <div className="flex-none items-center justify-center gap-2 border border-green-500 border-5 shadow-lg shadow-green-500/50 rounded-xl p-2 mt-2 items-center">
+        <form className="gap-4 flex items-center justify-center flex-col md:flex-row w-full md:w-auto" onSubmit={OnSubmit}>
 
         <input
-            className=" border p-2 rounded-xl border-gray-500 border-2 shadow-lg text-pink-900"
-            placeholder="Type message..."
-            onSubmit={OnSubmit}
+            className=" w-full md:flex-1 border p-2 rounded-xl border-gray-500 border-2 shadow-lg text-pink-900"
+            placeholder="Paste your resume..."
             value={text}
             onChange={(e)=> setText(e.target.value)}
           />
           <input
-            className="border p-2 rounded-xl border-gray-500 border-2 shadow-lg text-pink-900"
+            className="w-full md:flex-1 border p-2 rounded-xl border-gray-500 border-2 shadow-lg text-pink-900"
             placeholder="Targeting roles...."
-            onSubmit={OnSubmit}
             value={roles}
             onChange={(e)=> setRoles(e.target.value)}
           />
-          <button className="border p-2 rounded-xl border-gray-500 border-2 shadow-lg hover:bg-pink-500 hover:text-white text-pink-900" onClick={OnSubmit}>
+          <button className="border p-2 rounded-xl border-gray-500 border-2 shadow-lg hover:bg-pink-500 hover:text-white text-pink-900" type="submit">
             Send
           </button>
 
