@@ -66,7 +66,7 @@ const MessageBox = React.memo(function MessageBox({msg} : {msg : Message}){
 
   const messageType : boolean = msg.role==="user";
   return (<div className={` max-w-xs md:max-w-2xl border p-2 rounded-lg shadow-xl text-justify ${messageType ? "self-end border-blue-500 bg-blue-100 ml-auto text-blue-900" : "self-start border-gray-500 bg-gray-100 mr-auto text-gray-900"}`}>
-      <p className="rounded-lg mb-4 text-slate-450">{messageType ? "User" : "Assistant"} {"  "} {messageType ? "":msg.status==="Done" ? "": msg.status}</p>
+      <p className="rounded-lg mb-4 text-slate-500">{messageType ? "User" : "Assistant"} {"  "} {messageType ? "":msg.status==="Done" ? "": msg.status}</p>
       <Markdown>{msg.content}</Markdown>
   </div>);
 
