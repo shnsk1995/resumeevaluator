@@ -90,7 +90,7 @@ export default function Home() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const messages : Message[] = state.messages;
   const bufferRef = useRef("");
-  const flushTimerRef = useRef(null);
+  const flushTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   function StartFlusher(asstMsgId : string){
     flushTimerRef.current = setInterval(() => {
