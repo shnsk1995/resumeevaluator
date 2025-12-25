@@ -1,14 +1,17 @@
 "use client";
+
+import { abort } from "process";
 import React, { useEffect, useReducer, useState,useRef } from "react";
 import Markdown from "react-markdown";
 
 
 
-async function* FakeBackend(userMessage : string){
+async function* FakeBackend(userMessage : string, signal?:AbortSignal){
 
   const  assistantMessage : string = "I will **assume** that you are having some coding knowledge about JavaScript and have installed Node on your system for creating a below given React Hook program. An installation of Node comes along with the command-line tools: npm and npx, where npm is useful to install the packages into a project and npx is useful in running commands of Node from the command line. The npx looks in the current project folder for checking whether a command has been installed there. When the command is not available on your computer, the npx will look in the npmjs.com repository, then the latest version of the command script will be loaded and will run without locally installing it. This feature is useful in creating a skeleton React application within a few key presses."
   const messageParts = assistantMessage.split(/(\s)/);
   for(const msgPart of messageParts){
+    if(signal?.aborted) throw new DOMException("Aborted","Abort Error");
     await new Promise(r => setTimeout(r,35));
     yield msgPart;
   }
@@ -19,20 +22,28 @@ type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
-  status: "Thinking..." | "Streaming..." | "Done"
+  status: "Thinking..." | "Streaming..." | "Done" | "Message Aborted"
+};
+
+type ActMsgStatus ={
+  id: string;
+  status: "None" | "Streaming" | "Finished";
 };
 
 type State = {
   messages: Message[];
+  lastActiveMessage : ActMsgStatus;
 };
 
 type Action =
   | { type: "ADD_MESSAGES"; payload: Message[] }
   | { type: "ADD_MESSAGE"; payload: Message }
-  | {type : "UPDATE_MESSAGE"; payload : Message };
+  | {type : "UPDATE_MESSAGE"; payload : Message }
+  | {type : "SET_LAST_MESSAGE_STATUS"; payload : ActMsgStatus };
 
 const initialState: State = {
-    messages: []
+    messages: [],
+    lastActiveMessage : {id : "", status : "None"}
   };
 
 function uuid(){
@@ -42,44 +53,28 @@ function uuid(){
 function reducer(state: State, action: Action) : State{
   switch(action.type){
     case "ADD_MESSAGES":
-      console.log("Happy!")
       return { ...state, messages: [...state.messages, ...action.payload]}
     case "UPDATE_MESSAGE":
       return { ...state, messages: state.messages.map(m =>(
         m.id == action.payload.id ? action.payload : m
       ))}
+    case "SET_LAST_MESSAGE_STATUS":
+      return {...state, lastActiveMessage : action.payload}
     default:
       return state
   }
 
 }
 
-function UserMessage({msg} : {msg : string}){
-  return(
-  <div className="self-end max-w-xs md:max-w-2xl border border-blue-500 p-2 rounded-lg bg-blue-100 ml-auto text-blue-900">
-    <p className="rounded-lg mb-4 text-slate-400">User</p>
-    <Markdown>{msg}</Markdown>
-  </div>);
-}
-
 const MessageBox = React.memo(function MessageBox({msg} : {msg : Message}){
 
   const messageType : boolean = msg.role==="user";
   return (<div className={` max-w-xs md:max-w-2xl border p-2 rounded-lg shadow-xl text-justify ${messageType ? "self-end border-blue-500 bg-blue-100 ml-auto text-blue-900" : "self-start border-gray-500 bg-gray-100 mr-auto text-gray-900"}`}>
-      <p className="rounded-lg mb-4 text-slate-500">{messageType ? "User" : "Assistant"} {"  "} {messageType ? "":msg.status==="Done" ? "": msg.status}</p>
+      <p className={`rounded-lg mb-4 ${ msg.status==="Message Aborted" ? "text-red-900" : "text-slate-500"}`}>{messageType ? "User" : "Assistant"} {"  "} {messageType ? "":msg.status==="Done" ? "": msg.status}</p>
       <Markdown>{msg.content}</Markdown>
   </div>);
 
 });
-
-function AssistantMessage({msg} : {msg : string}){
-  return(
-    <div className="self-start max-w-xs md:max-w-2xl border border-gray-500 bg-gray-100 p-2 rounded-lg mr-auto text-gray-900 text-justify">
-      <p className="rounded-lg mb-4 text-slate-400">Assistant</p>
-      <Markdown>{msg}</Markdown>
-  </div>);
-}
-
 
 
 export default function Home() {
@@ -91,6 +86,8 @@ export default function Home() {
   const messages : Message[] = state.messages;
   const bufferRef = useRef("");
   const flushTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const isStreaming : boolean = state.lastActiveMessage.status==="Streaming";
 
   function StartFlusher(asstMsgId : string){
     flushTimerRef.current = setInterval(() => {
@@ -107,8 +104,16 @@ export default function Home() {
   }
 
   async function RunStream(userMessage : string, asstMsgId : string) {
+
+    const controller = new AbortController();
+    abortRef.current = controller;
     
     bufferRef.current = "";
+
+    dispatch({
+      type : "SET_LAST_MESSAGE_STATUS",
+      payload : {id : asstMsgId, status : "Streaming"}
+    })
 
     dispatch({
       type : "UPDATE_MESSAGE",
@@ -117,7 +122,7 @@ export default function Home() {
 
     StartFlusher(asstMsgId);
 
-    for await(const token of FakeBackend(userMessage)){
+    for await(const token of FakeBackend(userMessage, controller.signal)){
       bufferRef.current+=token;
     }
 
@@ -125,6 +130,13 @@ export default function Home() {
       type : "UPDATE_MESSAGE",
       payload : {id : asstMsgId, role : "assistant", content: bufferRef.current, status : "Done"}
     })
+
+    dispatch({
+      type : "SET_LAST_MESSAGE_STATUS",
+      payload : {id : asstMsgId, status : "Finished"}
+    })
+
+
 
     StopFlusher();
 
@@ -136,9 +148,6 @@ export default function Home() {
 
     const userMsgId : string = uuid();
     const assistantMsgId : string = uuid();
-
-    console.log(userMsgId);
-    console.log(assistantMsgId)
 
     dispatch({
 
@@ -160,12 +169,38 @@ export default function Home() {
 
   }
 
+  function StopStreaming(){
+
+    abortRef.current?.abort()
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+
+    dispatch({
+      type : "UPDATE_MESSAGE",
+      payload : {id : state.lastActiveMessage.id, role : "assistant", content: bufferRef.current, status : "Message Aborted"}
+    })
+
+    dispatch({
+      type : "SET_LAST_MESSAGE_STATUS",
+      payload : {id : state.lastActiveMessage.id, status : "Finished"}
+    })
+
+    StopFlusher();
+
+
+  }
+
   function OnSubmit(e : any){
     e.preventDefault();
     const userMessage = text.trim();
     if(!userMessage) return;
-    setText("");
-    newUserMessage(userMessage);
+    if ( state.lastActiveMessage.status=="Finished" ||  state.lastActiveMessage.status=="None"){
+
+      setText(""); 
+      newUserMessage(userMessage);
+
+    }
   }
 
   useEffect(() => {bottomRef.current?.scrollIntoView({behavior:"smooth"})},[state.messages.length])
@@ -210,6 +245,9 @@ export default function Home() {
           />
           <button className="border p-2 rounded-xl border-gray-500 shadow-l hover:bg-pink-500 hover:text-white text-pink-900" type="submit">
             Send
+          </button>
+          <button className="border p-2 rounded-xl border-gray-500 shadow-l hover:bg-pink-500 hover:text-white text-pink-900" type="button" disabled={!isStreaming} onClick={StopStreaming}>
+            Stop
           </button>
 
 
