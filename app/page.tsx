@@ -3,12 +3,27 @@
 import { abort } from "process";
 import React, { useEffect, useReducer, useState,useRef } from "react";
 import Markdown from "react-markdown";
+import { getSessionId } from "./session/session";
 
 
+const API_BASE_URL = "http://localhost:8000";
 
-async function* FakeBackend(userMessage : string, signal?:AbortSignal){
+async function* Backend(history : Message[], signal?:AbortSignal){
 
-  const  assistantMessage : string = "I will **assume** that you are having some coding knowledge about JavaScript and have installed Node on your system for creating a below given React Hook program. An installation of Node comes along with the command-line tools: npm and npx, where npm is useful to install the packages into a project and npx is useful in running commands of Node from the command line. The npx looks in the current project folder for checking whether a command has been installed there. When the command is not available on your computer, the npx will look in the npmjs.com repository, then the latest version of the command script will be loaded and will run without locally installing it. This feature is useful in creating a skeleton React application within a few key presses."
+  const graphRequest = {
+    history : history,
+    session_id : getSessionId()
+  }
+
+  const  response = await fetch(`${API_BASE_URL}/chat`,{
+    method : "POST",
+    headers : {
+      "content-type" : "application/json",
+    },
+    body : JSON.stringify(graphRequest)
+  });
+
+  const assistantMessage = await response.json();
   const messageParts = assistantMessage.split(/(\s)/);
   for(const msgPart of messageParts){
     if(signal?.aborted) throw new DOMException("Aborted","Abort Error");
@@ -103,7 +118,7 @@ export default function Home() {
     flushTimerRef.current = null;
   }
 
-  async function RunStream(userMessage : string, asstMsgId : string) {
+  async function RunStream(history : Message[], asstMsgId : string) {
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -122,7 +137,7 @@ export default function Home() {
 
     StartFlusher(asstMsgId);
 
-    for await(const token of FakeBackend(userMessage, controller.signal)){
+    for await(const token of Backend(history, controller.signal)){
       bufferRef.current+=token;
     }
 
@@ -144,28 +159,35 @@ export default function Home() {
   }
 
 
-  async function newUserMessage(userMessage:string){
+  async function newUserMessage(msg:string){
 
     const userMsgId : string = uuid();
     const assistantMsgId : string = uuid();
 
-    dispatch({
+    const userMessage : Message  = {
+      id: userMsgId,
+      role : "user" as const,
+      content: msg,
+      status : "Done"
+    }
 
+    const assistantMessage : Message = {
+      id : assistantMsgId,
+      role : "assistant" as const,
+      content: "",
+      status: "Thinking..."
+    }
+
+
+
+    dispatch({
       type : "ADD_MESSAGES",
-      payload : [{
-        id: userMsgId,
-        role : "user",
-        content: userMessage,
-        status : "Done"
-      },{
-        id : assistantMsgId,
-        role : "assistant",
-        content: "",
-        status: "Thinking..."
-      }]
+      payload : [userMessage,assistantMessage]
     });
 
-    await RunStream(userMessage, assistantMsgId);
+    const history = [...state.messages, userMessage]
+
+    await RunStream(history, assistantMsgId);
 
   }
 
