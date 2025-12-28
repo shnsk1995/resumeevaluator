@@ -84,7 +84,7 @@ function reducer(state: State, action: Action) : State{
 const MessageBox = React.memo(function MessageBox({msg} : {msg : Message}){
 
   const messageType : boolean = msg.role==="user";
-  return (<div className={` max-w-xs md:max-w-2xl border p-2 rounded-lg shadow-xl text-justify ${messageType ? "self-end border-blue-500 bg-blue-100 ml-auto text-blue-900" : "self-start border-gray-500 bg-gray-100 mr-auto text-gray-900"}`}>
+  return (<div className={` max-w-xs md:max-w-2xl border p-2 rounded-lg shadow-xl text-justify ${messageType ? "self-end border-blue-500 bg-blue-100 ml-auto text-blue-900" : "self-start border-gray-500 bg-gray-100 mr-auto text-gray-900"} whitespace-pre-wrap break-words overflow-wrap-anywhere`}>
       <p className={`rounded-lg mb-4 ${ msg.status==="Message Aborted" ? "text-red-900" : "text-slate-500"}`}>{messageType ? "User" : "Assistant"} {"  "} {messageType ? "":msg.status==="Done" ? "": msg.status}</p>
       <Markdown>{msg.content}</Markdown>
   </div>);
@@ -132,7 +132,7 @@ export default function Home() {
 
     dispatch({
       type : "UPDATE_MESSAGE",
-      payload : {id : asstMsgId, role : "assistant", content: "", status : "Streaming..."}
+      payload : {id : asstMsgId, role : "assistant", content: "", status : "T..."}
     })
 
     StartFlusher(asstMsgId);
@@ -140,6 +140,8 @@ export default function Home() {
     for await(const token of Backend(history, controller.signal)){
       bufferRef.current+=token;
     }
+
+  
 
     dispatch({
       type : "UPDATE_MESSAGE",
@@ -215,11 +217,12 @@ export default function Home() {
 
   function OnSubmit(e : any){
     e.preventDefault();
-    const userMessage = text.trim();
+    const userMessage = "Resume: \n" + text.trim() + "\n\n\nTargeting roles: \n" + roles.trim();
     if(!userMessage) return;
     if ( state.lastActiveMessage.status=="Finished" ||  state.lastActiveMessage.status=="None"){
 
       setText(""); 
+      setRoles("");
       newUserMessage(userMessage);
 
     }
