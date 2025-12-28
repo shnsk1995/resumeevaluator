@@ -132,7 +132,7 @@ export default function Home() {
 
     dispatch({
       type : "UPDATE_MESSAGE",
-      payload : {id : asstMsgId, role : "assistant", content: "", status : "T..."}
+      payload : {id : asstMsgId, role : "assistant", content: "", status : "Thinking..."}
     })
 
     StartFlusher(asstMsgId);
