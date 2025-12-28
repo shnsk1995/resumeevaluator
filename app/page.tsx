@@ -105,12 +105,15 @@ export default function Home() {
   const isStreaming : boolean = state.lastActiveMessage.status==="Streaming";
 
   function StartFlusher(asstMsgId : string){
+
     flushTimerRef.current = setInterval(() => {
-      dispatch({
-        type : "UPDATE_MESSAGE",
-        payload : {id : asstMsgId, role : "assistant" , content : bufferRef.current, status:"Streaming..."}
-      })
-    },60);
+      const isStreaming = bufferRef.current.length > 0;
+        dispatch({
+          type : "UPDATE_MESSAGE",
+          payload : {id : asstMsgId, role : "assistant" , content : bufferRef.current, status: isStreaming ? "Streaming..." : "Thinking..."}
+        })
+      },60);
+    
   }
 
   function StopFlusher(){
