@@ -6,7 +6,9 @@ import Markdown from "react-markdown";
 import { getSessionId } from "./session/session";
 
 
-const BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+
+console.log(BASE_URL)
 
 async function* Backend(history : Message[], signal?:AbortSignal){
 
