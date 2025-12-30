@@ -6,7 +6,7 @@ import Markdown from "react-markdown";
 import { getSessionId } from "./session/session";
 
 
-const API_BASE_URL = "http://localhost:8000";
+const BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 
 async function* Backend(history : Message[], signal?:AbortSignal){
 
@@ -15,7 +15,7 @@ async function* Backend(history : Message[], signal?:AbortSignal){
     session_id : getSessionId()
   }
 
-  const  response = await fetch(`${API_BASE_URL}/chat`,{
+  const  response = await fetch(`${BASE_URL}/chat`,{
     method : "POST",
     headers : {
       "content-type" : "application/json",
